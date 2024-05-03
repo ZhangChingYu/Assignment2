@@ -71,8 +71,8 @@ def updateMenuItem(name, description, categoryone, categorytwo, categorythree, c
     try: 
         conn = openConnection()
         cur = conn.cursor()
-        cur.execute('UPDATE MenuItem SET Name = %s, Description = %s, CategoryOne = %s, CategoryTwo = %s, CategoryThree = %s, CoffeeType = %s, MilkKind = %s, Price = %s, ReviewDate = %s, Reviewer = %s WHERE Name = %s', 
-                    (name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price, reviewdate, reviewer, name))
+        cur.execute('UPDATE MenuItem SET Name = %s, Description = %s, CategoryOne = %s, CategoryTwo = %s, CategoryThree = %s, CoffeeType = %s, MilkKind = %s, Price = %s, ReviewDate = %s, Reviewer = %s WHERE Name = %s AND MilkKind = %s AND CoffeeType = %s', 
+                    (name, description, get_category(categoryone), get_category(categorytwo), get_category(categorythree), get_coffeeType(coffeetype), get_milkKind(milkkind), price, reviewdate, reviewer, name, get_milkKind(milkkind), get_coffeeType(coffeetype)))
         conn.commit()
         if cur.rowcount > 0:
             return True
@@ -88,7 +88,7 @@ def getMenuItemByName(name):
     try: 
         conn = openConnection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM MenuItem WHERE Name = 'French Toast';")
+        cur.execute("SELECT * FROM MenuItem WHERE Name = '%s';" % name)
         conn.commit()
         MenuItem = cur.fetchone()
         return MenuItem
@@ -98,11 +98,56 @@ def getMenuItemByName(name):
     finally:
         cur.close()
         conn.close()
+
+def get_category(category_name):
+    try:
+        conn = openConnection()
+        curs = conn.cursor()
+        get_category_id = "SELECT CategoryID FROM Category WHERE lower(CategoryName)='%s'" %(category_name.lower())
+        curs.execute(get_category_id)
+        category_id = curs.fetchone()[0]
+
+        curs.close()
+        conn.close()
+        return category_id
+    except Exception as e:
+        print(f"{category_name} is not defined")
+        return None
+
+def get_coffeeType(coffee_type):
+    try:
+        conn = openConnection()
+        curs = conn.cursor()
+        get_coffee_id = "SELECT CoffeeTypeID FROM CoffeeType WHERE lower(CoffeeTypeName)='%s'" %(coffee_type.lower())
+        curs.execute(get_coffee_id)
+        coffee_id = curs.fetchone()[0]
+
+        curs.close()
+        conn.close()
+        return coffee_id
+    except Exception as e:
+        print(f"{coffee_type} is not defined")
+        return None
+
+def get_milkKind(milk_kind):
+    try:
+        conn = openConnection()
+        curs = conn.cursor()
+        get_milk_id = "SELECT MilkKindID FROM MilkKind WHERE lower(MilkKindName)='%s'" %(milk_kind.lower())
+        curs.execute(get_milk_id)
+        coffee_id = curs.fetchone()[0]
+
+        curs.close()
+        conn.close()
+        return coffee_id
+    except Exception as e:
+        print(f"{milk_kind} is not defined")
+        return None
 '''
 
 '''
 if __name__ == '__main__':
     #openConnection()
-    print(updateMenuItem('French Toast', 'A sliced bread soaked in beaten eggs, milk, and cream, then pan-fried with butter', 1, None, None, None, None, 9.90, '11/01/2024', 'johndoe'))
+    print(updateMenuItem('French Toast', 'A sliced bread soaked in beaten eggs, milk, and cream, then pan-fried with butter', 'Breakfast', None, None, None, None, 9.90, '10/01/2024', 'johndoe'))
     print(getMenuItemByName('French Toast'))
 
