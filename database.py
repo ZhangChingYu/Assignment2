@@ -69,6 +69,7 @@ Update an existing menu item
 '''
 def updateMenuItem(name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price, reviewdate, reviewer):
     try: 
+        milkkind = getMilkKindByName(milkkind)
         conn = openConnection()
         cur = conn.cursor()
         cur.execute('UPDATE MenuItem SET Name = %s, Description = %s, CategoryOne = %s, CategoryTwo = %s, CategoryThree = %s, CoffeeType = %s, MilkKind = %s, Price = %s, ReviewDate = %s, Reviewer = %s WHERE Name = %s', 
@@ -88,12 +89,25 @@ def getMenuItemByName(name):
     try: 
         conn = openConnection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM MenuItem WHERE Name = 'French Toast';")
+        cur.execute("SELECT * FROM MenuItem WHERE Name = '%s';" % name)
         conn.commit()
         MenuItem = cur.fetchone()
         return MenuItem
     except:
-        conn.rollback()
+        return None
+    finally:
+        cur.close()
+        conn.close()
+
+def getMilkKindByName(name):
+    try: 
+        conn = openConnection()
+        cur = conn.cursor()
+        cur.execute("SELECT MilkKindID FROM MilkKind WHERE MilkKindName = '%s';" % name )
+        conn.commit()
+        MilkKind = cur.fetchone()[0]
+        return MilkKind
+    except:
         return None
     finally:
         cur.close()
@@ -103,6 +117,7 @@ def getMenuItemByName(name):
 '''
 if __name__ == '__main__':
     #openConnection()
-    print(updateMenuItem('French Toast', 'A sliced bread soaked in beaten eggs, milk, and cream, then pan-fried with butter', 1, None, None, None, None, 9.90, '11/01/2024', 'johndoe'))
-    print(getMenuItemByName('French Toast'))
+    #print(updateMenuItem('French Toast', 'A sliced bread soaked in beaten eggs, milk, and cream, then pan-fried with butter', 1, None, None, None, None, 9.90, '11/01/2024', 'johndoe'))
+    #print(getMenuItemByName('French Toast'))
+    print(getMilkKindByName('Whole'))
 
