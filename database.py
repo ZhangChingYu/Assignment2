@@ -61,11 +61,18 @@ def findMenuItemsByCriteria(searchString):
 Add a new menu item
 '''
 def addMenuItem(name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price):
+    return
+
+
+'''
+Update an existing menu item
+'''
+def updateMenuItem(name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price, reviewdate, reviewer):
     try: 
         conn = openConnection()
         cur = conn.cursor()
-        cur.execute('INSERT INTO MenuItem (Name,Description,CategoryOne,CategoryTwo,CategoryThree,CoffeeType,MilkKind,Price) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)', 
-                    (name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price))
+        cur.execute('UPDATE MenuItem SET Name = %s, Description = %s, CategoryOne = %s, CategoryTwo = %s, CategoryThree = %s, CoffeeType = %s, MilkKind = %s, Price = %s, ReviewDate = %s, Reviewer = %s WHERE Name = %s', 
+                    (name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price, reviewdate, reviewer, name))
         conn.commit()
         if cur.rowcount > 0:
             return True
@@ -75,21 +82,27 @@ def addMenuItem(name, description, categoryone, categorytwo, categorythree, coff
     finally:
         cur.close()
         conn.close()
-    return False
-
-
-'''
-Update an existing menu item
-'''
-def updateMenuItem(name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price, reviewdate, reviewer):
-
     return
 
+def getMenuItemByName(name):
+    try: 
+        conn = openConnection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM MenuItem WHERE Name = 'French Toast';")
+        conn.commit()
+        MenuItem = cur.fetchone()
+        return MenuItem
+    except:
+        conn.rollback()
+        return None
+    finally:
+        cur.close()
+        conn.close()
 '''
 
 '''
 if __name__ == '__main__':
     #openConnection()
-    #print(addMenuItem(1,1,1,1,1,1,1,1))
-    print()
+    print(updateMenuItem('French Toast', 'A sliced bread soaked in beaten eggs, milk, and cream, then pan-fried with butter', 1, None, None, None, None, 9.90, '11/01/2024', 'johndoe'))
+    print(getMenuItemByName('French Toast'))
 
