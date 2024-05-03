@@ -10,18 +10,22 @@ Connect to the database using the connection string
 '''
 def openConnection():
     # connection parameters - ENTER YOUR LOGIN AND PASSWORD HERE
-    userid = "y24s1c9120_unikey"
-    passwd = ""
-    myHost = "awsprddbs4836.shared.sydney.edu.au"
+    #userid = "y24s1c9120_unikey"
+    myDatabase = "Assignment_2"
+    userid = "postgres"
+    passwd = "root"
+    myHost = "localhost"
+    #myHost = "awsprddbs4836.shared.sydney.edu.au"
 
     # Create a connection to the database
     conn = None
     try:
         # Parses the config file and connects using the connect string
-        conn = psycopg2.connect(database=userid,
+        conn = psycopg2.connect(database=myDatabase,
                                     user=userid,
                                     password=passwd,
                                     host=myHost)
+        print("Connected to database")
     except psycopg2.Error as sqle:
         print("psycopg2.Error : " + sqle.pgerror)
     
@@ -57,8 +61,21 @@ def findMenuItemsByCriteria(searchString):
 Add a new menu item
 '''
 def addMenuItem(name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price):
-
-    return
+    try: 
+        conn = openConnection()
+        cur = conn.cursor()
+        cur.execute('INSERT INTO MenuItem (Name,Description,CategoryOne,CategoryTwo,CategoryThree,CoffeeType,MilkKind,Price) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)', 
+                    (name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price))
+        conn.commit()
+        if cur.rowcount > 0:
+            return True
+    except:
+        conn.rollback()
+        return False
+    finally:
+        cur.close()
+        conn.close()
+    return False
 
 
 '''
@@ -67,3 +84,12 @@ Update an existing menu item
 def updateMenuItem(name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price, reviewdate, reviewer):
 
     return
+
+'''
+
+'''
+if __name__ == '__main__':
+    #openConnection()
+    #print(addMenuItem(1,1,1,1,1,1,1,1))
+    print()
+
