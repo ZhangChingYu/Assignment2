@@ -45,8 +45,7 @@ CREATE TABLE MenuItem
 	MilkKind		INTEGER			REFERENCES MilkKind,
 	Price			DECIMAL(6,2)	NOT NULL,
 	ReviewDate		DATE,
-	Reviewer		VARCHAR(10) 	REFERENCES Staff,
-	UNIQUE(Name, CoffeeType, MilkKind)
+	Reviewer		VARCHAR(10) 	REFERENCES Staff
 );
 
 INSERT INTO Staff VALUES ('ajones','098','Anna','Jones',25,41000);
