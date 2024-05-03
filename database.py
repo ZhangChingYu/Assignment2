@@ -65,20 +65,26 @@ def addMenuItem(name, description, categoryone, categorytwo, categorythree, coff
         curs.execute(select_id)
         menuItem_id = curs.fetchone()[0]
 
-        # check in list?
         add_item = '''
             INSERT INTO MenuItem (MenuItemID, Name, Description, CategoryOne, CategoryTwo, CategoryThree, CoffeeType, MilkKind, Price)
             VALUES (%s,'%s','%s','%s','%s','%s','%s','%s',%s)
-        ''' %(menuItem_id+1, name, description, 
-            get_category(categoryone), get_category(categorytwo), get_category(categorythree), 
-            get_coffeeType(coffeetype), get_milkKind(milkkind), price)
+        ''' %(menuItem_id+1, 
+              name, 
+              description, 
+              get_category(categoryone),
+              get_category(categorytwo), 
+              get_category(categorythree), 
+              get_coffeeType(coffeetype),
+              get_milkKind(milkkind),
+              price)
         curs.execute(add_item)
         curs.close()
         conn.commit()
         print(f"{name} added!")
+        return True
     except Exception as e:
         print(f"Fail to add {name}!")
-    return True
+        return False
 
 
 '''
