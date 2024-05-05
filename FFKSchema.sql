@@ -3,6 +3,8 @@ DROP TABLE IF EXISTS MilkKind;
 DROP TABLE IF EXISTS CoffeeType;
 DROP TABLE IF EXISTS Category;
 DROP TABLE IF EXISTS Staff;
+DROP FUNCTION IF EXISTS SEARCH_BY_KEYWORD;
+DROP FUNCTION IF EXISTS SORTED_KEYWORD_RESULTS;
 
 CREATE TABLE Staff
 (
@@ -97,4 +99,72 @@ INSERT INTO MenuItem (Name,Description,CategoryOne,CategoryTwo,CategoryThree,Cof
 	('Iced Coffee','A glass of cold espresso, milk, ice cubes, and a scoop of ice cream',1,2,NULL,2,1,7.60,NULL,NULL);
 INSERT INTO MenuItem (Name,Description,CategoryOne,CategoryTwo,CategoryThree,CoffeeType,MilkKind,Price,ReviewDate,Reviewer) VALUES 
 	('Coffee Pancake','A short stack of pancakes flecked with espresso powder and mini chocolate chips',1,NULL,NULL,NULL,NULL,8.95,'08/04/2014','janedoe');
+	
+	
+CREATE FUNCTION SEARCH_BY_KEYWORD(IN keyword VARCHAR)
+RETURNS TABLE(
+	mid INTEGER, 
+	Name VARCHAR, 
+	Description VARCHAR, 
+	categoryOne VARCHAR, 
+	categoryTwo VARCHAR, 
+	categoryThree VARCHAR, 
+	coffeeType VARCHAR, 
+	milkType VARCHAR, 
+	price NUMERIC(6,2), 
+	reviewDate DATE, 
+	reviewer VARCHAR
+) AS $$
+BEGIN
+	RETURN QUERY
+	SELECT 
+		mi.menuItemId,
+		mi.Name,
+		mi.description,
+		c1.categoryName, 
+		c2.categoryName,
+		c3.categoryName,
+		ct.coffeeTypeName,
+		mk.milkKindName,
+		mi.price,
+		mi.reviewDate,
+		mi.reviewer
+	FROM MenuItem mi
+	LEFT JOIN Category AS c1 ON mi.categoryOne = c1.categoryId
+	LEFT JOIN Category AS c2 ON mi.categoryTwo = c2.categoryId 
+	LEFT JOIN Category AS c3 ON mi.categoryThree = c3.categoryId
+	LEFT JOIN CoffeeType AS ct ON mi.coffeeType = ct.coffeeTypeId
+	LEFT JOIN MilkKind AS mk ON mi.milkKind = mk.milkKindId
+	WHERE mi.Name LIKE ('%' || keyword || '%')
+	OR mi.description LIKE ('%' || keyword || '%')
+	OR mi.reviewer LIKE ('%' || keyword || '%')
+	OR c1.categoryName LIKE ('%' || keyword || '%')
+	OR c2.categoryName LIKE ('%' || keyword || '%')
+	OR c3.categoryName LIKE ('%' || keyword || '%');
+END; $$
+LANGUAGE plpgsql;
+
+CREATE FUNCTION SORTED_KEYWORD_RESULTS(IN keyword VARCHAR)
+RETURNS TABLE(
+	mid INTEGER, 
+	Name VARCHAR, 
+	Description VARCHAR, 
+	categoryOne VARCHAR, 
+	categoryTwo VARCHAR, 
+	categoryThree VARCHAR, 
+	coffeeType VARCHAR, 
+	milkType VARCHAR, 
+	price NUMERIC(6,2), 
+	reviewDate DATE, 
+	reviewer VARCHAR
+) AS $$
+BEGIN
+	RETURN QUERY
+	SELECT * FROM SEARCH_BY_KEYWORD(keyword) sbk
+	WHERE sbk.reviewDate >= CURRENT_DATE - INTERVAL '10 years'
+	OR sbk.reviewDate IS null
+	ORDER BY reviewer DESC, reviewDate DESC;
+END; $$
+LANGUAGE plpgsql;
+
 COMMIT;
