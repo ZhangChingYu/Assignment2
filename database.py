@@ -37,15 +37,80 @@ Validate staff based on username and password
 '''
 def checkStaffLogin(staffID, password):
 
-    return ['johndoe', '654', 'John', 'Doe', 22, 38000]
+    conn = openConnection()
+    cursor = conn.cursor()
+    query = f'SELECT * FROM Staff WHERE StaffID = \'{staffID}\' and Password = \'{password}\''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    if len(result) ==0:
+        return None
+    else:
+        return list(result[0])
 
 
 '''
 List all the associated menu items in the database by staff
 '''
 def findMenuItemsByStaff(staffID):
+    conn = openConnection()
+    cursor = conn.cursor()
+    #query = f'SELECT * FROM MenuItem where Reviewer = \'{staffID}\''
+    query = f'''
+    select menuitemid, name, description, concat(categoryone,categorytwo,categorythree) as category, concat(coffeetypename,' ',milkkindname) as options, price	, reviewdate,reviewer from menuitem 
+    left join coffeetype on menuitem.coffeetype = coffeetype.coffeetypeid 
+    left join milkkind on menuitem.milkkind = milkkind.milkkindid
+    where reviewer = \'{staffID}\'
+    order by reviewdate;
+    '''
+    cursor.execute(query)
+    results = cursor.fetchall()
+    menu_items = list()
+    for result in results:
+        for data in result:
+            if data is None:
+                data = ''
+    for result in results:
+        row = dict()
+        row['menuitem_id'] = result[0]
+        row['name'] = handle_display_empty(str(result[1]))
+        row['description'] = handle_display_empty(str(result[2]))
+        row['category'] = displaying_category(str(result[3]))
+        row['coffeeoption'] = format_options(str(result[4]))
+        row['price'] = str(result[5])
+        row['reviewdate'] = str(format_date(result[6]))
+        row['reviewer'] = handle_display_empty(str(result[7]))
+        menu_items.append(row)
+    return menu_items
 
-    return
+def displaying_category(categories: str):
+    if categories == '' or categories is None:
+        return ''
+    i =0
+    result = ''
+    while i < len(categories):
+        if categories[i] == '1':
+            result+= 'Breakfast' + '|'
+        elif categories[i] == '2':
+            result+= 'Lunch' + '|'
+        elif categories[i] == '3':
+            result+='Dinner' + '|'
+        i+=1
+    return result.strip('|')
+
+def format_date(date):
+    if date is None:
+        return ''
+    curr_date = str(date).split('-')
+    reverse_order = curr_date[::-1]
+    cleanse_date = '-'.join(reverse_order)
+    return cleanse_date
+def handle_display_empty(data):
+    return '' if data is None else data
+
+def format_options(coffee_option):
+    curr_data = coffee_option.split()
+    cleanse_data = '-'.join(curr_data)
+    return cleanse_data
 
 
 '''
