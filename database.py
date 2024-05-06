@@ -63,24 +63,15 @@ def addMenuItem(name, description, categoryone, categorytwo, categorythree, coff
     try:
         conn = openConnection()
         curs = conn.cursor()
-        select_id = 'SELECT MenuItemID FROM MenuItem ORDER BY MenuItemID DESC'
-        curs.execute(select_id)
-        menuItem_id = curs.fetchone()[0]
-
-        # check in list?
-        add_item = '''
-            INSERT INTO MenuItem (MenuItemID, Name, Description, CategoryOne, CategoryTwo, CategoryThree, CoffeeType, MilkKind, Price)
-            VALUES (%s,'%s','%s','%s','%s','%s','%s','%s',%s)
-        ''' %(menuItem_id+1, name, description, 
-                get_category(categoryone), get_category(categorytwo), get_category(categorythree), 
-                get_coffeeType(coffeetype), get_milkKind(milkkind), price)
-        curs.execute(add_item)
+        curs.callproc("add_menu_item",[name, description, get_category(categoryone), get_category(categorytwo), 
+                                       get_category(categorythree), get_coffeeType(coffeetype), get_milkKind(milkkind), price])
         curs.close()
         conn.commit()
         print(f"{name} added!")
+        return True
     except Exception as e:
         print(f"Fail to add {name}!")
-    return True
+        return False
 
 
 '''
@@ -108,8 +99,7 @@ def get_category(category_name):
     try:
         conn = openConnection()
         curs = conn.cursor()
-        get_category_id = "SELECT CategoryID FROM Category WHERE lower(CategoryName)='%s'" %(category_name.lower())
-        curs.execute(get_category_id)
+        curs.callproc("get_category_id", [category_name])
         category_id = curs.fetchone()[0]
 
         curs.close()
@@ -122,8 +112,7 @@ def get_coffeeType(coffee_type):
     try:
         conn = openConnection()
         curs = conn.cursor()
-        get_coffee_id = "SELECT CoffeeTypeID FROM CoffeeType WHERE lower(CoffeeTypeName)='%s'" %(coffee_type.lower())
-        curs.execute(get_coffee_id)
+        curs.callproc("get_coffee_type_id", [coffee_type])
         coffee_id = curs.fetchone()[0]
 
         curs.close()
@@ -136,14 +125,20 @@ def get_milkKind(milk_kind):
     try:
         conn = openConnection()
         curs = conn.cursor()
-        get_milk_id = "SELECT MilkKindID FROM MilkKind WHERE lower(MilkKindName)='%s'" %(milk_kind.lower())
-        curs.execute(get_milk_id)
-        coffee_id = curs.fetchone()[0]
+        curs.callproc("get_milk_kind_id", [milk_kind])
+        milk_id = curs.fetchone()[0]
 
         curs.close()
         conn.close()
-        return coffee_id
+        return milk_id
     except Exception as e:
         print(f"{milk_kind} is not defined")
+    
+
+# print(get_category("bReakfast"))
+# print(get_coffeeType("lOngbLACK"))
+# print(get_milkKind("oat"))
+# print(addMenuItem("Coffee Drink","A coffee drink comprising espresso, steamed milk, and foam","Breakfast","LUNCH","DInner","CappucciNo","oat",5.70))
+
 
 
