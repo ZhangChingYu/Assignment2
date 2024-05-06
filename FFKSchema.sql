@@ -172,13 +172,14 @@ BEGIN
 		mk.milkKindName,
 		mi.price,
 		mi.reviewDate,
-		mi.reviewer
+		cast(concat(s.firstname,' ',s.lastname) as VARCHAR)
 	FROM MenuItem mi
 	LEFT JOIN Category AS c1 ON mi.categoryOne = c1.categoryId
 	LEFT JOIN Category AS c2 ON mi.categoryTwo = c2.categoryId 
 	LEFT JOIN Category AS c3 ON mi.categoryThree = c3.categoryId
 	LEFT JOIN CoffeeType AS ct ON mi.coffeeType = ct.coffeeTypeId
 	LEFT JOIN MilkKind AS mk ON mi.milkKind = mk.milkKindId
+	LEFT JOIN Staff AS s ON mi.reviewer = s.StaffID
 	WHERE mi.Name LIKE ('%' || keyword || '%')
 	OR mi.description LIKE ('%' || keyword || '%')
 	OR mi.reviewer LIKE ('%' || keyword || '%')
@@ -207,7 +208,7 @@ BEGIN
 	SELECT * FROM SEARCH_BY_KEYWORD(keyword) sbk
 	WHERE sbk.reviewDate >= CURRENT_DATE - INTERVAL '10 years'
 	OR sbk.reviewDate IS null
-	ORDER BY reviewer DESC, reviewDate DESC;
+	ORDER BY reviewer, reviewDate DESC;
 END; $$
 LANGUAGE plpgsql;
 

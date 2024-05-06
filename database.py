@@ -112,6 +112,7 @@ Find a list of menu items based on the searchString provided as parameter
 See assignment description for search specification
 '''
 def findMenuItemsByCriteria(searchString):
+    print(searchString)
     menu_item_tuples = []
     try: 
         conn = openConnection()
@@ -159,7 +160,7 @@ def updateMenuItem(id, name, description, categoryone, categorytwo, categorythre
         conn = openConnection()
         cur = conn.cursor()
         cur.execute('UPDATE MenuItem SET Name = %s, Description = %s, CategoryOne = %s, CategoryTwo = %s, CategoryThree = %s, CoffeeType = %s, MilkKind = %s, Price = %s, ReviewDate = %s, Reviewer = %s WHERE menuItemId = %s;', 
-                    (name, description, get_category(categoryone), get_category(categorytwo), get_category(categorythree), get_coffeeType(coffeetype), get_milkKind(milkkind), price, reviewdate, reviewer, id))
+                    (name, description, get_category(categoryone), get_category(categorytwo), get_category(categorythree), get_coffeeType(coffeetype), get_milkKind(milkkind), price, reviewdate, reviewer.replace(" ", "").lower(), id))
         conn.commit()
         return True
     except Exception as e: 
@@ -229,3 +230,7 @@ class MenuItem:
         self.price = price
         self.reviewdate = reviewDate.strftime('%d-%m-%Y') if reviewDate != None else ''
         self.reviewer = reviewer if reviewer != None else ''
+
+
+if __name__ == '__main__':
+    print(findMenuItemsByCriteria("fee"))
