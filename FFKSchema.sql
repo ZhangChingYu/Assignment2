@@ -50,6 +50,50 @@ CREATE TABLE MenuItem
 	Reviewer		VARCHAR(10) 	REFERENCES Staff
 );
 
+CREATE OR REPLACE FUNCTION get_category_id(category_name VARCHAR) 
+RETURNS INTEGER AS $$
+DECLARE
+	category_id INTEGER;
+BEGIN
+	SELECT CategoryID INTO category_id
+	FROM Category
+	WHERE LOWER(CategoryName)=LOWER(category_name);
+	RETURN category_id;
+END;$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_coffee_type_id(coffee_type_name VARCHAR) 
+RETURNS INTEGER AS $$
+DECLARE
+	coffee_type_id INTEGER;
+BEGIN
+	SELECT CoffeeTypeID INTO coffee_type_id
+	FROM CoffeeType
+	WHERE LOWER(CoffeeTypeName)=LOWER(coffee_type_name);
+	RETURN coffee_type_id;
+END;$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_milk_kind_id(milk_kind_name VARCHAR) 
+RETURNS INTEGER AS $$
+DECLARE
+	milk_kind_id INTEGER;
+BEGIN
+	SELECT MilkKindID INTO milk_kind_id
+	FROM MilkKind
+	WHERE LOWER(MilkKindName)=LOWER(milk_kind_name);
+	RETURN milk_kind_id;
+END;$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION add_menu_item(n_name VARCHAR, n_description VARCHAR, catergory1 INTEGER,
+										category2 INTEGER, category3 INTEGER, coffee_id INTEGER, 
+										milk_id INTEGER, price DECIMAL)
+RETURNS VOID AS $$
+BEGIN
+	INSERT INTO MenuItem(Name, Description, CategoryOne, CategoryTwo, CategoryThree, CoffeeType, MilkKind, Price)
+	VALUES (n_name, n_description, catergory1, category2, category3, coffee_id, milk_id, price);
+END;$$ LANGUAGE plpgsql;
+
+SET datestyle to 'ISO, DMY';
+
 INSERT INTO Staff VALUES ('ajones','098','Anna','Jones',25,41000);
 INSERT INTO Staff VALUES ('ganderson','987','Glen','Anderson',30,49500.80);
 INSERT INTO Staff VALUES ('jwalker','876','James','Walker',22,38890.50);

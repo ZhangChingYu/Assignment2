@@ -10,12 +10,11 @@ Connect to the database using the connection string
 '''
 def openConnection():
     # connection parameters - ENTER YOUR LOGIN AND PASSWORD HERE
-    #userid = "y24s1c9120_unikey"
     myDatabase = "Assignment_2"
+    #userid = "y24s1c9120_unikey"
     userid = "postgres"
     passwd = "root"
     myHost = "localhost"
-    #myHost = "awsprddbs4836.shared.sydney.edu.au"
 
     # Create a connection to the database
     conn = None
@@ -35,7 +34,7 @@ def openConnection():
 Validate staff based on username and password
 '''
 def checkStaffLogin(staffID, password):
-
+    
     return ['johndoe', '654', 'John', 'Doe', 22, 38000]
 
 
@@ -77,7 +76,18 @@ def findMenuItemsByCriteria(searchString):
 Add a new menu item
 '''
 def addMenuItem(name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price):
-    return
+    try:
+        conn = openConnection()
+        curs = conn.cursor()
+        curs.callproc("add_menu_item",[name, description, get_category(categoryone), get_category(categorytwo), 
+                                       get_category(categorythree), get_coffeeType(coffeetype), get_milkKind(milkkind), price])
+        curs.close()
+        conn.commit()
+        print(f"{name} added!")
+        return True
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
 
 
 '''
@@ -85,6 +95,7 @@ Update an existing menu item
 '''
 def updateMenuItem(id, name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price, reviewdate, reviewer):
     try: 
+        milkkind = get_milkKind(milkkind)
         conn = openConnection()
         cur = conn.cursor()
         cur.execute('UPDATE MenuItem SET Name = %s, Description = %s, CategoryOne = %s, CategoryTwo = %s, CategoryThree = %s, CoffeeType = %s, MilkKind = %s, Price = %s, ReviewDate = %s, Reviewer = %s WHERE menuItemId = %s;', 
@@ -97,53 +108,47 @@ def updateMenuItem(id, name, description, categoryone, categorytwo, categorythre
         cur.close()
         conn.close()
 
+
+
 def get_category(category_name):
     try:
         conn = openConnection()
         curs = conn.cursor()
-        get_category_id = "SELECT CategoryID FROM Category WHERE lower(CategoryName)='%s'" %(category_name.lower())
-        curs.execute(get_category_id)
-        conn.commit()
+        curs.callproc("get_category_id", [category_name])
         category_id = curs.fetchone()[0]
+
         curs.close()
         conn.close()
         return category_id
     except Exception as e:
-        print(f"Category: {category_name} is not defined")
-        return None
+        print(f"Error: {e}")
 
 def get_coffeeType(coffee_type):
     try:
         conn = openConnection()
         curs = conn.cursor()
-        get_coffee_id = "SELECT CoffeeTypeID FROM CoffeeType WHERE lower(CoffeeTypeName)='%s'" %(coffee_type.lower())
-        curs.execute(get_coffee_id)
-        conn.commit()
+        curs.callproc("get_coffee_type_id", [coffee_type])
         coffee_id = curs.fetchone()[0]
 
         curs.close()
         conn.close()
         return coffee_id
     except Exception as e:
-        print(f"Coffee Type: {coffee_type} is not defined")
-        return None
+        print(f"Error: {e}")
 
 def get_milkKind(milk_kind):
     try:
         conn = openConnection()
         curs = conn.cursor()
-        get_milk_id = "SELECT MilkKindID FROM MilkKind WHERE lower(MilkKindName)='%s'" %(milk_kind.lower())
-        curs.execute(get_milk_id)
-        conn.commit()
-        coffee_id = curs.fetchone()[0]
+        curs.callproc("get_milk_kind_id", [milk_kind])
+        milk_id = curs.fetchone()[0]
 
         curs.close()
         conn.close()
-        return coffee_id
+        return milk_id
     except Exception as e:
-        print(f"Milk Type: {milk_kind} is not defined")
-        return None
-    
+        print(f"Error: {e}")
+
 class MenuItem:
     def __init__(self, id, name, description, categoryOne, categoryTwo, categoryThree, coffeeType, milkKind, price, reviewDate, reviewer):
         self.menuitem_id = id
@@ -163,16 +168,3 @@ class MenuItem:
         self.price = price
         self.reviewdate = reviewDate.strftime('%d-%m-%Y') if reviewDate != None else ''
         self.reviewer = reviewer if reviewer != None else ''
-    
-'''
-
-'''
-if __name__ == '__main__':
-    #openConnection()
-    #print(updateMenuItem('French Toast', 'A sliced bread soaked in beaten eggs, milk, and cream, then pan-fried with butter', 'Dinner', None, None, None, None, 9.90, '10/01/2024', 'johndoe'))
-    #print(getMenuItemByName('Eggs Benedict'))
-    #item = getMenuItemById(1)
-    #print(item)
-    print(findMenuItemsByCriteria('doe').__len__())
-    print()
-
