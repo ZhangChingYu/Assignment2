@@ -95,14 +95,14 @@ Update an existing menu item
 '''
 def updateMenuItem(id, name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price, reviewdate, reviewer):
     try: 
-        milkkind = get_milkKind(milkkind)
         conn = openConnection()
         cur = conn.cursor()
         cur.execute('UPDATE MenuItem SET Name = %s, Description = %s, CategoryOne = %s, CategoryTwo = %s, CategoryThree = %s, CoffeeType = %s, MilkKind = %s, Price = %s, ReviewDate = %s, Reviewer = %s WHERE menuItemId = %s;', 
                     (name, description, get_category(categoryone), get_category(categorytwo), get_category(categorythree), get_coffeeType(coffeetype), get_milkKind(milkkind), price, reviewdate, reviewer, id))
         conn.commit()
         return True
-    except:
+    except Exception as e: 
+        print(e)
         return False
     finally:
         cur.close()
