@@ -11,9 +11,9 @@ Connect to the database using the connection string
 def openConnection():
     # connection parameters - ENTER YOUR LOGIN AND PASSWORD HERE
     #userid = "y24s1c9120_unikey"
-    myDatabase = "Assignment_2"
+    myDatabase = "comp9120"
     userid = "postgres"
-    passwd = "root"
+    passwd = "1231"
     myHost = "localhost"
     #myHost = "awsprddbs4836.shared.sydney.edu.au"
 
@@ -69,13 +69,13 @@ def findMenuItemsByStaff(staffID):
     for result in results:
         row = dict()
         row['menuitem_id'] = result[0]
-        row['name'] = handle_display_empty(str(result[1]))
-        row['description'] = handle_display_empty(str(result[2]))
+        row['name'] = handle_display_empty(result[1])
+        row['description'] = handle_display_empty(result[2])
         row['category'] = displaying_category(str(result[3]))
         row['coffeeoption'] = format_options(str(result[4]))
         row['price'] = str(result[5])
         row['reviewdate'] = str(format_date(result[6]))
-        row['reviewer'] = handle_display_empty(str(result[7]))
+        row['reviewer'] = handle_display_empty(result[7])
         menu_items.append(row)
     return menu_items
 
@@ -102,7 +102,7 @@ def format_date(date):
     cleanse_date = '-'.join(reverse_order)
     return cleanse_date
 def handle_display_empty(data):
-    return '' if data is None else data
+    return '' if data == None else data
 
 def format_options(coffee_option):
     
