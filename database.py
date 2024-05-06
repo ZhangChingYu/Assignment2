@@ -156,12 +156,11 @@ def addMenuItem(name, description, categoryone, categorytwo, categorythree, coff
 Update an existing menu item
 '''
 def updateMenuItem(id, name, description, categoryone, categorytwo, categorythree, coffeetype, milkkind, price, reviewdate, reviewer):
-    print(reviewer)
     try: 
         conn = openConnection()
         cur = conn.cursor()
         cur.execute('UPDATE MenuItem SET Name = %s, Description = %s, CategoryOne = %s, CategoryTwo = %s, CategoryThree = %s, CoffeeType = %s, MilkKind = %s, Price = %s, ReviewDate = %s, Reviewer = %s WHERE menuItemId = %s;', 
-                    (name, description, get_category(categoryone), get_category(categorytwo), get_category(categorythree), get_coffeeType(coffeetype), get_milkKind(milkkind), price, reviewdate, get_staffID(reviewer), id))
+                    (name, description, get_category(categoryone), get_category(categorytwo), get_category(categorythree), get_coffeeType(coffeetype), get_milkKind(milkkind), price, reviewdate, reviewer.lower(), id))
         conn.commit()
         return True
     except Exception as e: 

@@ -180,12 +180,13 @@ BEGIN
 	LEFT JOIN CoffeeType AS ct ON mi.coffeeType = ct.coffeeTypeId
 	LEFT JOIN MilkKind AS mk ON mi.milkKind = mk.milkKindId
 	LEFT JOIN Staff AS s ON mi.reviewer = s.StaffID
-	WHERE mi.Name LIKE ('%' || keyword || '%')
-	OR mi.description LIKE ('%' || keyword || '%')
-	OR mi.reviewer LIKE ('%' || keyword || '%')
-	OR c1.categoryName LIKE ('%' || keyword || '%')
-	OR c2.categoryName LIKE ('%' || keyword || '%')
-	OR c3.categoryName LIKE ('%' || keyword || '%');
+	WHERE LOWER(mi.Name) LIKE ('%' || LOWER(keyword) || '%')
+	OR (LOWER(s.firstName)||' '|| LOWER(s.lastName)) LIKE ('%' || LOWER(keyword) || '%')
+	OR LOWER(mi.description) LIKE ('%' || LOWER(keyword) || '%')
+	OR LOWER(mi.reviewer) LIKE ('%' || LOWER(keyword) || '%')
+	OR LOWER(c1.categoryName) LIKE ('%' || LOWER(keyword) || '%')
+	OR LOWER(c2.categoryName) LIKE ('%' || LOWER(keyword) || '%')
+	OR LOWER(c3.categoryName) LIKE ('%' || LOWER(keyword) || '%');
 END; $$
 LANGUAGE plpgsql;
 
@@ -208,7 +209,7 @@ BEGIN
 	SELECT * FROM SEARCH_BY_KEYWORD(keyword) sbk
 	WHERE sbk.reviewDate >= CURRENT_DATE - INTERVAL '10 years'
 	OR sbk.reviewDate IS null
-	ORDER BY reviewer, reviewDate DESC;
+	ORDER BY reviewer ASC, reviewDate DESC;
 END; $$
 LANGUAGE plpgsql;
 
