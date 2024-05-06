@@ -104,7 +104,7 @@ def handle_display_empty(data):
 def format_options(coffee_option):
     
     curr_data = coffee_option.split()
-    cleanse_data = '-'.join(curr_data)
+    cleanse_data = ' - '.join(curr_data)
     return cleanse_data
 
 '''
