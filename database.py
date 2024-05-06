@@ -65,10 +65,7 @@ def findMenuItemsByStaff(staffID):
     cursor.execute(query)
     results = cursor.fetchall()
     menu_items = list()
-    for result in results:
-        for data in result:
-            if data is None:
-                data = ''
+    
     for result in results:
         row = dict()
         row['menuitem_id'] = result[0]
