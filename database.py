@@ -68,7 +68,7 @@ def addMenuItem(name, description, categoryone, categorytwo, categorythree, coff
         print(f"{name} added!")
         return True
     except Exception as e:
-        print(f"Fail to add {name}!")
+        print(f"Error: {e}")
         return False
 
 
@@ -90,7 +90,7 @@ def get_category(category_name):
         conn.close()
         return category_id
     except Exception as e:
-        print(f"{category_name} is not defined")
+        print(f"Error: {e}")
 
 def get_coffeeType(coffee_type):
     try:
@@ -103,7 +103,7 @@ def get_coffeeType(coffee_type):
         conn.close()
         return coffee_id
     except Exception as e:
-        print(f"{coffee_type} is not defined")
+        print(f"Error: {e}")
 
 def get_milkKind(milk_kind):
     try:
@@ -116,13 +116,8 @@ def get_milkKind(milk_kind):
         conn.close()
         return milk_id
     except Exception as e:
-        print(f"{milk_kind} is not defined")
-    
+        print(f"Error: {e}")
 
-# print(get_category("bReakfast"))
-# print(get_coffeeType("lOngbLACK"))
-# print(get_milkKind("oat"))
-# print(addMenuItem("Coffee Drink","A coffee drink comprising espresso, steamed milk, and foam","Breakfast","LUNCH","DInner","CappucciNo","oat",5.70))
 
 
 
