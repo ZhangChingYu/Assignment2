@@ -54,18 +54,18 @@ List all the associated menu items in the database by staff
 def findMenuItemsByStaff(staffID):
     conn = openConnection()
     cursor = conn.cursor()
-    #query = f'SELECT * FROM MenuItem where Reviewer = \'{staffID}\''
     query = f'''
-    select menuitemid, name, description, concat(categoryone,categorytwo,categorythree) as category, concat(coffeetypename,' ',milkkindname) as options, price	, reviewdate,reviewer from menuitem 
+    select menuitemid, name, description, concat(categoryone,categorytwo,categorythree) as category, concat(coffeetypename,' ',milkkindname) as options, price	, reviewdate,concat(firstname,' ',lastname) as reviewname from menuitem 
     left join coffeetype on menuitem.coffeetype = coffeetype.coffeetypeid 
     left join milkkind on menuitem.milkkind = milkkind.milkkindid
+    left join staff on menuitem.reviewer = staff.staffid
     where reviewer = \'{staffID}\'
-    order by reviewdate;
+    order by description asc,price desc;
     '''
     cursor.execute(query)
     results = cursor.fetchall()
     menu_items = list()
-    
+
     for result in results:
         row = dict()
         row['menuitem_id'] = result[0]
@@ -105,6 +105,7 @@ def handle_display_empty(data):
     return '' if data is None else data
 
 def format_options(coffee_option):
+    
     curr_data = coffee_option.split()
     cleanse_data = '-'.join(curr_data)
     return cleanse_data
