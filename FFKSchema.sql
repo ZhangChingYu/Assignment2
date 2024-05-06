@@ -46,7 +46,6 @@ CREATE TABLE MenuItem
 	Price			DECIMAL(6,2)	NOT NULL,
 	ReviewDate		DATE,
 	Reviewer		VARCHAR(10) 	REFERENCES Staff
-	UNIQUE(Name, CoffeeType, MilkKind)
 );
 
 CREATE OR REPLACE FUNCTION get_category_id(category_name VARCHAR) 
