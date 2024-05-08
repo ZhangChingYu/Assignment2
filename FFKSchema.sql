@@ -121,7 +121,7 @@ INSERT INTO MilkKind VALUES (3,'Soy');
 INSERT INTO MilkKind VALUES (4,'Almond');
 INSERT INTO MilkKind VALUES (5,'Oat');
 
-SET datestyle to 'ISO, DMY';
+--SET datestyle to 'ISO, DMY';
 
 INSERT INTO MenuItem (Name,Description,CategoryOne,CategoryTwo,CategoryThree,CoffeeType,MilkKind,Price,ReviewDate,Reviewer) VALUES 
 	('French Toast','A sliced bread soaked in beaten eggs, milk, and cream, then pan-fried with butter',1,NULL,NULL,NULL,NULL,9.90,'10/01/2024','johndoe');
