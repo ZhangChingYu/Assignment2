@@ -10,17 +10,15 @@ Connect to the database using the connection string
 '''
 def openConnection():
     # connection parameters - ENTER YOUR LOGIN AND PASSWORD HERE
-    myDatabase = "Assignment_2"
-    #userid = "y24s1c9120_unikey"
-    userid = "postgres"
-    passwd = "root"
-    myHost = "localhost"
+    userid = "y24s1c9120_ccha0039"
+    passwd = "VJqh47sW"
+    myHost = "awsprddbs4836.shared.sydney.edu.au"
 
     # Create a connection to the database
     conn = None
     try:
         # Parses the config file and connects using the connect string
-        conn = psycopg2.connect(database=myDatabase,
+        conn = psycopg2.connect(database=userid,
                                     user=userid,
                                     password=passwd,
                                     host=myHost)
@@ -253,3 +251,4 @@ class MenuItem:
 if __name__ == '__main__':
     # print(findMenuItemsByCriteria("fee"))
     get_staffID("John Doe")
+    findMenuItemsByCriteria("fee")
