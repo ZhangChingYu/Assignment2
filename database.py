@@ -34,7 +34,7 @@ Validate staff based on username and password
 def checkStaffLogin(staffID, password):
     conn = openConnection()
     cursor = conn.cursor()
-    query = f'SELECT * FROM Staff WHERE StaffID = \'{staffID}\' and Password = \'{password}\''
+    query = f'SELECT * FROM Staff WHERE StaffID = \'{staffID.lower()}\' and Password = \'{password}\''
     cursor.execute(query)
     result = cursor.fetchall()
     if len(result) ==0:
