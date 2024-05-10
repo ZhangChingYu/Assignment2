@@ -92,7 +92,7 @@ BEGIN
 	VALUES (n_name, n_description, catergory1, category2, category3, coffee_id, milk_id, price);
 END;$$ LANGUAGE plpgsql;
 
-SET datestyle to 'ISO, DMY';
+--SET datestyle to 'ISO, DMY';
 
 INSERT INTO Staff VALUES ('ajones','098','Anna','Jones',25,41000);
 INSERT INTO Staff VALUES ('ganderson','987','Glen','Anderson',30,49500.80);
