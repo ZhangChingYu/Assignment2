@@ -13,6 +13,10 @@ def openConnection():
     userid = "y24s1c9120_ccha0039"
     passwd = "VJqh47sW"
     myHost = "awsprddbs4836.shared.sydney.edu.au"
+    #userid = "postgres"
+    #passwd = "root"
+    #myHost = "localhost"
+    #database = "Assignment_2"
 
     # Create a connection to the database
     conn = None
@@ -34,8 +38,7 @@ Validate staff based on username and password
 def checkStaffLogin(staffID, password):
     conn = openConnection()
     cursor = conn.cursor()
-    query = f'SELECT * FROM Staff WHERE StaffID = \'{staffID.lower()}\' and Password = \'{password}\''
-    cursor.execute(query)
+    cursor.execute('SELECT * FROM Staff WHERE StaffID = LOWER(%s) and Password = %s', (staffID, password))
     result = cursor.fetchall()
     if len(result) ==0:
         return None
@@ -49,61 +52,58 @@ List all the associated menu items in the database by staff
 def findMenuItemsByStaff(staffID):
     conn = openConnection()
     cursor = conn.cursor()
-    query = f'''
-    select menuitemid, name, description, concat(categoryone,categorytwo,categorythree) as category, concat(coffeetypename,' ',milkkindname) as options, price	, reviewdate,concat(firstname,' ',lastname) as reviewname from menuitem 
+    cursor.execute('''
+    select 
+        menuitemid, 
+        name, 
+        COALESCE(description,''), 
+        concat(c1.categoryName,
+            CASE
+                WHEN c2.categoryName IS NOT NULL THEN '|' || c2.categoryName
+                ELSE ''
+            END,
+            CASE
+                WHEN c3.categoryName IS NOT NULL THEN '|' || c3.categoryName
+                ELSE ''
+            END) as category, 
+        concat(
+            CASE
+                WHEN coffeetypename IS NOT NULL THEN coffeetypename
+                ELSE ''
+            END,
+            CASE
+                WHEN milkkindname IS NOT NULL THEN ' - ' || milkkindname
+                ELSE ''
+            END) as options, 
+        price, 
+        COALESCE(TO_CHAR(reviewdate, 'DD-MM-YYYY'), ''),
+        concat(firstname,' ',lastname) as reviewname 
+    from menuitem 
+    left join category c1 on menuitem.categoryOne = c1.categoryId
+    left join category c2 on menuitem.categoryTwo = c2.categoryId
+    left join category c3 on menuitem.categoryThree = c3.categoryId
     left join coffeetype on menuitem.coffeetype = coffeetype.coffeetypeid 
     left join milkkind on menuitem.milkkind = milkkind.milkkindid
     left join staff on menuitem.reviewer = staff.staffid
-    where reviewer = \'{staffID}\'
+    where reviewer = '%s'
     order by description asc,price desc;
-    '''
-    cursor.execute(query)
+    ''' % staffID)
     results = cursor.fetchall()
     menu_items = list()
 
     for result in results:
         row = dict()
         row['menuitem_id'] = result[0]
-        row['name'] = handle_display_empty(result[1])
-        row['description'] = handle_display_empty(result[2])
-        row['category'] = displaying_category(str(result[3]))
-        row['coffeeoption'] = format_options(str(result[4]))
-        row['price'] = str(result[5])
-        row['reviewdate'] = str(format_date(result[6]))
-        row['reviewer'] = handle_display_empty(result[7])
+        row['name'] = result[1]
+        row['description'] = result[2]
+        row['category'] = result[3]
+        row['coffeeoption'] = result[4]
+        row['price'] = result[5]
+        row['reviewdate'] = result[6]
+        row['reviewer'] = result[7]
         menu_items.append(row)
     return menu_items
 
-def displaying_category(categories: str):
-    if categories == '' or categories is None:
-        return ''
-    i =0
-    result = ''
-    while i < len(categories):
-        if categories[i] == '1':
-            result+= 'Breakfast' + '|'
-        elif categories[i] == '2':
-            result+= 'Lunch' + '|'
-        elif categories[i] == '3':
-            result+='Dinner' + '|'
-        i+=1
-    return result.strip('|')
-
-def format_date(date):
-    if date is None:
-        return ''
-    curr_date = str(date).split('-')
-    reverse_order = curr_date[::-1]
-    cleanse_date = '-'.join(reverse_order)
-    return cleanse_date
-def handle_display_empty(data):
-    return '' if data == None else data
-
-def format_options(coffee_option):
-    
-    curr_data = coffee_option.split()
-    cleanse_data = ' - '.join(curr_data)
-    return cleanse_data
 
 '''
 Find a list of menu items based on the searchString provided as parameter
@@ -115,7 +115,7 @@ def findMenuItemsByCriteria(searchString):
     try: 
         conn = openConnection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM SORTED_KEYWORD_RESULTS('%s');" % searchString)
+        cur.execute("SELECT * FROM SEARCH_BY_KEYWORD('%s');" % searchString)
         conn.commit()
         menu_item_tuples = cur.fetchall()
     except:
@@ -157,8 +157,8 @@ def updateMenuItem(id, name, description, categoryone, categorytwo, categorythre
     try: 
         conn = openConnection()
         cur = conn.cursor()
-        cur.execute('UPDATE MenuItem SET Name = %s, Description = %s, CategoryOne = %s, CategoryTwo = %s, CategoryThree = %s, CoffeeType = %s, MilkKind = %s, Price = %s, ReviewDate = %s, Reviewer = %s WHERE menuItemId = %s;', 
-                    (name, description, get_category(categoryone), get_category(categorytwo), get_category(categorythree), get_coffeeType(coffeetype), get_milkKind(milkkind), price, reviewdate, reviewer.lower(), id))
+        cur.execute('UPDATE MenuItem SET Name = %s, Description = %s, CategoryOne = %s, CategoryTwo = %s, CategoryThree = %s, CoffeeType = %s, MilkKind = %s, Price = %s, ReviewDate = %s, Reviewer = LOWER(%s) WHERE menuItemId = %s;', 
+                    (name, description, get_category(categoryone), get_category(categorytwo), get_category(categorythree), get_coffeeType(coffeetype), get_milkKind(milkkind), price, reviewdate, reviewer, id))
         conn.commit()
         return True
     except Exception as e: 
@@ -228,24 +228,15 @@ def get_staffID(staffName):
         conn.close()
 
 class MenuItem:
-    def __init__(self, id, name, description, categoryOne, categoryTwo, categoryThree, coffeeType, milkKind, price, reviewDate, reviewer):
+    def __init__(self, id, name, description, categories, coffeeOptions, price, reviewDate, reviewer):
         self.menuitem_id = id
         self.name = name
-        self.description = description if description != None else ''
-        self.category = categoryOne
-        self.category += '|'+categoryTwo if categoryTwo != None else ''
-        self.category += '|'+categoryThree if categoryThree != None else ''
-        if coffeeType == None and milkKind == None:
-            self.coffeeoption = ''
-        elif coffeeType != None and milkKind == None:
-            self.coffeeoption = coffeeType
-        elif coffeeType == None and milkKind != None:
-            self.coffeeoption = milkKind
-        else:
-            self.coffeeoption = coffeeType+" - "+milkKind
+        self.description = description
+        self.category = categories
+        self.coffeeoption = coffeeOptions
         self.price = price
-        self.reviewdate = reviewDate.strftime('%d-%m-%Y') if reviewDate != None else ''
-        self.reviewer = reviewer if reviewer != None else ''
+        self.reviewdate = reviewDate
+        self.reviewer = reviewer
 
 
 if __name__ == '__main__':

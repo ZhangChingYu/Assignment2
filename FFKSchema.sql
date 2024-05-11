@@ -4,7 +4,6 @@ DROP TABLE IF EXISTS CoffeeType;
 DROP TABLE IF EXISTS Category;
 DROP TABLE IF EXISTS Staff;
 DROP FUNCTION IF EXISTS SEARCH_BY_KEYWORD;
-DROP FUNCTION IF EXISTS SORTED_KEYWORD_RESULTS;
 
 CREATE TABLE Staff
 (
@@ -145,18 +144,15 @@ INSERT INTO MenuItem (Name,Description,CategoryOne,CategoryTwo,CategoryThree,Cof
 	('Coffee Pancake','A short stack of pancakes flecked with espresso powder and mini chocolate chips',1,NULL,NULL,NULL,NULL,8.95,'08/04/2014','janedoe');
 	
 	
-CREATE FUNCTION SEARCH_BY_KEYWORD(IN keyword VARCHAR)
+CREATE OR REPLACE FUNCTION SEARCH_BY_KEYWORD(IN keyword VARCHAR)
 RETURNS TABLE(
 	mid INTEGER, 
 	Name VARCHAR, 
 	Description VARCHAR, 
-	categoryOne VARCHAR, 
-	categoryTwo VARCHAR, 
-	categoryThree VARCHAR, 
-	coffeeType VARCHAR, 
-	milkType VARCHAR, 
+	categories VARCHAR,
+	coffeeOptions VARCHAR,
 	price NUMERIC(6,2), 
-	reviewDate DATE, 
+	reviewDate VARCHAR, 
 	reviewer VARCHAR
 ) AS $$
 BEGIN
@@ -164,15 +160,36 @@ BEGIN
 	SELECT 
 		mi.menuItemId,
 		mi.Name,
-		mi.description,
-		c1.categoryName, 
-		c2.categoryName,
-		c3.categoryName,
-		ct.coffeeTypeName,
-		mk.milkKindName,
+		COALESCE(mi.description, ''),
+		CAST(concat(
+			c1.categoryName, 
+			CASE 
+				WHEN c2.categoryName IS NOT NULL THEN '|' || c2.categoryName
+            	ELSE ''
+			END, 
+			CASE
+				WHEN c3.categoryName IS NOT NULL THEN '|' || c3.categoryName
+				ELSE ''
+			END) 
+			AS VARCHAR),
+		CAST(concat(
+			CASE
+				WHEN ct.coffeeTypeName IS NOT NULL THEN ct.coffeeTypeName
+				ELSE ''
+			END,
+			CASE
+				WHEN mk.milkKindName IS NOT NULL THEN ' - ' ||  mk.milkKindName
+				ELSE ''
+			END) 
+			AS VARCHAR),
 		mi.price,
-		mi.reviewDate,
-		cast(concat(s.firstname,' ',s.lastname) as VARCHAR)
+		COALESCE(CAST(TO_CHAR(mi.reviewDate, 'DD-MM-YYYY') AS VARCHAR),''),
+		CAST(
+			CASE
+				WHEN s.StaffID IS NOT NULL THEN concat(s.firstname,' ',s.lastname)
+				ELSE ''
+			END
+		AS VARCHAR)
 	FROM MenuItem mi
 	LEFT JOIN Category AS c1 ON mi.categoryOne = c1.categoryId
 	LEFT JOIN Category AS c2 ON mi.categoryTwo = c2.categoryId 
@@ -180,36 +197,15 @@ BEGIN
 	LEFT JOIN CoffeeType AS ct ON mi.coffeeType = ct.coffeeTypeId
 	LEFT JOIN MilkKind AS mk ON mi.milkKind = mk.milkKindId
 	LEFT JOIN Staff AS s ON mi.reviewer = s.StaffID
-	WHERE LOWER(mi.Name) LIKE ('%' || LOWER(keyword) || '%')
+	WHERE (mi.reviewDate >= CURRENT_DATE - INTERVAL '10 years' OR mi.reviewDate IS NULL)
+	AND (LOWER(mi.Name) LIKE ('%' || LOWER(keyword) || '%')
 	OR (LOWER(s.firstName)||' '|| LOWER(s.lastName)) LIKE ('%' || LOWER(keyword) || '%')
 	OR LOWER(mi.description) LIKE ('%' || LOWER(keyword) || '%')
 	OR LOWER(mi.reviewer) LIKE ('%' || LOWER(keyword) || '%')
 	OR LOWER(c1.categoryName) LIKE ('%' || LOWER(keyword) || '%')
 	OR LOWER(c2.categoryName) LIKE ('%' || LOWER(keyword) || '%')
-	OR LOWER(c3.categoryName) LIKE ('%' || LOWER(keyword) || '%');
-END; $$
-LANGUAGE plpgsql;
-
-CREATE FUNCTION SORTED_KEYWORD_RESULTS(IN keyword VARCHAR)
-RETURNS TABLE(
-	mid INTEGER, 
-	Name VARCHAR, 
-	Description VARCHAR, 
-	categoryOne VARCHAR, 
-	categoryTwo VARCHAR, 
-	categoryThree VARCHAR, 
-	coffeeType VARCHAR, 
-	milkType VARCHAR, 
-	price NUMERIC(6,2), 
-	reviewDate DATE, 
-	reviewer VARCHAR
-) AS $$
-BEGIN
-	RETURN QUERY
-	SELECT * FROM SEARCH_BY_KEYWORD(keyword) sbk
-	WHERE sbk.reviewDate >= CURRENT_DATE - INTERVAL '10 years'
-	OR sbk.reviewDate IS null
-	ORDER BY reviewer ASC, reviewDate DESC;
+	OR LOWER(c3.categoryName) LIKE ('%' || LOWER(keyword) || '%'))
+	ORDER BY mi.reviewer DESC, mi.reviewDate DESC;
 END; $$
 LANGUAGE plpgsql;
 
